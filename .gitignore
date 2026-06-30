@@ -12,3 +12,5 @@ wheels/
 # Environment Variable
 .env
 
+# Ignore vs code specific files
+*.code-workspace
