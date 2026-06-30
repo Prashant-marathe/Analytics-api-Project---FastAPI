@@ -1,0 +1,30 @@
+# Ignore the local virtual environment
+.venv/
+venv/
+ENV/
+
+# Ignore local secret files
+.env
+.env.*
+
+# Ignore Git files
+.git
+.gitignore
+
+# Ignore Python cache files
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Ignore Docker files we don't need inside the app container
+compose.yaml
+docker-compose.yml
+.dockerignore
+
+# Ignore OS specific files
+.DS_Store
+Thumbs.db

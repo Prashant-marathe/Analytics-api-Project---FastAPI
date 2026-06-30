@@ -1,0 +1,53 @@
+# 1 - Download & Install Python 3
+FROM python:3.13.2-slim-bullseye
+
+# Set Python-related environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# OPTIMIZATION: Tell uv to compile code into bytecode for faster boots
+ENV UV_COMPILE_BYTECODE=1
+
+# FIX: Point the system directly to the virtual environment uv creates
+ENV PATH="/code/.venv/bin:$PATH"
+
+# Install uv directly from the official binary release
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Install os dependencies for our mini vm
+RUN apt-get update && apt-get install -y \
+    # for postgres
+    libpq-dev \
+    # for Pillow
+    libjpeg-dev \
+    # for CairoSVG
+    libcairo2 \
+    # other
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set the working directory
+WORKDIR /code
+
+# Copy the modern uv configuration files
+COPY pyproject.toml uv.lock ./
+
+# 2 & 3 - Create Virtual Environment & Install Python Packages using uv
+# This automatically builds a clean .venv directory inside /code
+RUN uv sync --frozen --no-dev --no-install-project
+
+# copy the project code into the container's working directory
+COPY ./src /code
+
+# make the bash script executable
+COPY ./boot/docker-run.sh /opt/run.sh
+RUN chmod +x /opt/run.sh
+
+# Clean up apt cache to reduce image size
+RUN apt-get remove --purge -y \
+    && apt-get autoremove -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Run the FastAPI project via the runtime script
+CMD ["/opt/run.sh"]
